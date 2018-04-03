@@ -3,6 +3,7 @@
 import React, { Component } from 'react'
 import { View, StyleSheet, TouchableOpacity } from 'react-native-web'
 import Text from '../Text'
+import Icon from '../Icon'
 
 import COLORS from '../../colors'
 import { BASIC_SPACING } from '../../styles'
@@ -15,9 +16,10 @@ type Props = {
   isOpen: boolean,
   newMessages: boolean,
   onOpen: (id: string) => void,
+  onPressRemove? : ?() => void,
 }
 
-export default class ConverationTitle extends Component<Props> {
+export default class ConversationTitle extends Component<Props> {
   static defaultProps = {
     isOpen: false,
     newMessages: false,
@@ -31,6 +33,16 @@ export default class ConverationTitle extends Component<Props> {
 
   renderBullet() {
     return this.props.newMessages ? <View style={styles.redBullet} /> : null
+  }
+
+  renderRemove() {
+    const { onPressRemove, isOpen } = this.props
+
+    return isOpen ? (
+        <TouchableOpacity onPress={onPressRemove} style={styles.remove}>
+          <Icon name='remove' />
+        </TouchableOpacity>
+    ) : null
   }
 
   render() {
@@ -53,6 +65,7 @@ export default class ConverationTitle extends Component<Props> {
             {`# ${conversation.subject}`}
           </Text>
           {this.renderBullet()}
+          {this.renderRemove()}
         </View>
       </TouchableOpacity>
     )
@@ -101,5 +114,8 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     backgroundColor: COLORS.PRIMARY_RED,
     marginHorizontal: BASIC_SPACING,
+  },
+  remove: {
+    marginHorizontal: BASIC_SPACING + 2,
   },
 })

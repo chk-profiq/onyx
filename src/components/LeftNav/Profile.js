@@ -5,6 +5,7 @@ import { compose } from 'react-apollo'
 import { View, StyleSheet, TouchableOpacity } from 'react-native-web'
 import Text from '../Text'
 import Avatar from '../Avatar'
+import Icon from '../Icon'
 import {
   AcceptContactMutation,
   RequestContactMutation,
@@ -30,6 +31,7 @@ type Props = {
   acceptContact: AcceptContactFunc,
   requestContact: RequestContactFunc,
   onOpen: (profile: Object) => void,
+  onPressRemove?: ?() => void,
 }
 
 export class Profile extends Component<Props> {
@@ -60,17 +62,32 @@ export class Profile extends Component<Props> {
     return this.props.newMessages ? <View style={styles.redBullet} /> : null
   }
 
+  renderRemove() {
+    const { onPressRemove, isOpen } = this.props
+
+    return isOpen ? (
+      <TouchableOpacity onPress={onPressRemove} style={styles.remove}>
+        <Icon name='remove' />
+      </TouchableOpacity>
+    ) : null
+  }
+
   renderState() {
+    const { isOpen } = this.props
+    const stateAreaStyles = [styles.stateArea]
+    if (isOpen) {
+      stateAreaStyles.push(styles.openState)
+    }
     switch (this.props.state) {
       case 'SENT':
         return (
-          <View style={styles.stateArea}>
+          <View style={stateAreaStyles}>
             <Text style={styles.sentText}>Sent</Text>
           </View>
         )
       case 'RECEIVED':
         return (
-          <View style={styles.stateArea}>
+          <View style={stateAreaStyles}>
             <TouchableOpacity
               onPress={this.onPressAccept}
               style={styles.stateButton}
@@ -81,7 +98,7 @@ export class Profile extends Component<Props> {
         )
       case null:
         return (
-          <View style={styles.stateArea}>
+          <View style={stateAreaStyles}>
             <TouchableOpacity
               onPress={this.onPressInvite}
               style={styles.stateButton}
@@ -134,6 +151,7 @@ export class Profile extends Component<Props> {
         </View>
         {this.renderBullet()}
         {this.renderState()}
+        {this.renderRemove()}
       </TouchableOpacity>
     )
   }
@@ -209,6 +227,12 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     backgroundColor: COLORS.PRIMARY_RED,
     marginHorizontal: BASIC_SPACING,
+  },
+  remove: {
+    marginHorizontal: BASIC_SPACING + 4,
+  },
+  openState: {
+    paddingRight: BASIC_SPACING * 4,
   },
 })
 

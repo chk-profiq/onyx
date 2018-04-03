@@ -27,6 +27,7 @@ import Contact from './Contact'
 import CreateChannelModal, { type ChannelData } from './CreateChannelModal'
 import AddContactModal from './AddContactModal'
 import UserProfileModal from './UserProfileModal'
+import RemoveModal from './RemoveModal'
 import Conversation from './Conversation'
 import Loader from './Loader'
 
@@ -54,7 +55,7 @@ type Props = {
   subscribeToContactsChanged: SubscribeFunc,
 }
 
-type ModalName = 'channel' | 'contact' | 'profile'
+type ModalName = 'channel' | 'contact' | 'profile' | 'remove'
 
 type State = {
   addContactError: ?string,
@@ -156,12 +157,25 @@ class App extends Component<Props, State> {
     this.props.setOpenChannel(data.createChannel.id)
   }
 
+  onPressRemove = async () => {
+    if ( this.props.openContact ) {
+      this.props.setOpenContact(undefined)
+    } else if ( this.props.openChannel ) {
+      this.props.setOpenChannel(undefined)
+    }
+    this.onCloseModal()
+  }
+
   onPressOpenAddContact = () => {
     this.setState({ openModal: 'contact' })
   }
 
   onPressOpenCreateChannel = () => {
     this.setState({ openModal: 'channel' })
+  }
+
+  onPressOpenRemove = () => {
+    this.setState({ openModal: 'remove' })
   }
 
   setOpenContact = (profile: Object) => {
@@ -215,6 +229,37 @@ class App extends Component<Props, State> {
     )
   }
 
+  renderRemoveModal() {
+    const { openModal } = this.state
+    const { openChannel, openContact } = this.props
+
+    let profile = {}
+    let type = ''
+
+    if (openContact) {
+      profile = this.props.data.viewer.contacts.filter(
+          ({ profile }) => profile.id === openContact,
+      )[0].profile
+      type = 'contact'
+    } else if (openChannel) {
+      profile = this.props.data.viewer.channels.filter(
+          ({ id }) => id === openChannel,
+      )[0]
+      type = 'channel'
+    }
+
+    profile = { ...profile, type: type }
+
+    return (
+      <RemoveModal
+        isOpen={openModal === 'remove'}
+        onPressRemove={this.onPressRemove}
+        onCloseModal={this.onCloseModal}
+        profile={profile}
+      />
+    )
+  }
+
   mapContacts = c => (
     <Profile
       key={c.profile.id}
@@ -223,6 +268,7 @@ class App extends Component<Props, State> {
       onOpen={this.setOpenContact}
       state={c.state}
       newMessages={c.convo ? c.convo.pointer !== c.convo.messageCount : false}
+      onPressRemove={this.onPressOpenRemove}
     />
   )
 
@@ -244,6 +290,7 @@ class App extends Component<Props, State> {
         isOpen={c.id === openChannel}
         onOpen={setOpenChannel}
         newMessages={c.pointer !== c.messageCount}
+        onPressRemove={this.onPressOpenRemove}
       />
     ))
 
@@ -261,6 +308,7 @@ class App extends Component<Props, State> {
         {this.renderAddContactModal()}
         {this.renderCreateChannelModal()}
         {this.renderProfileModal()}
+        {this.renderRemoveModal()}
         <View style={styles.column}>
           <View style={styles.profile}>
             <Profile
